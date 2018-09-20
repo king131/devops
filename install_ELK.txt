@@ -1,0 +1,9 @@
+安装：https://www.digitalocean.com/community/tutorials/how-to-install-elasticsearch-logstash-and-kibana-elk-stack-on-ubuntu-14-04#install-logstash
+
+http://blog.csdn.net/fenglailea/article/details/52469671
+
+测试：
+
+filebeat -e -c filebeat.yml -d "Publish"
+
+

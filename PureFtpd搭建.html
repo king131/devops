@@ -1,0 +1,171 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+<title>PureFtpd搭建</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<style>
+body { font:80% Verdana,Tahoma,Arial,sans-serif; }
+h1, h2, h3, h4 {  font-family: "Trebuchet MS",Georgia,"Times New Roman",serif; }
+ul.toc { padding: 4px; margin-left: 0; }
+ul.toc li { list-style-type:none; }
+ul.toc li.heading2 { margin-left: 1em; }
+ul.toc li.heading3 { margin-left: 2em; }
+a.wiki-anchor { display: none; margin-left: 6px; text-decoration: none; }
+a.wiki-anchor:hover { color: #aaa !important; text-decoration: none; }
+h1:hover a.wiki-anchor, h2:hover a.wiki-anchor, h3:hover a.wiki-anchor { display: inline; color: #ddd; }
+</style>
+</head>
+<body>
+<h1 id="PureFtpd搭建">PureFtpd搭建<a href="#PureFtpd搭建" class="wiki-anchor">&para;</a></h1>
+
+
+	<h3 id="安装">安装<a href="#安装" class="wiki-anchor">&para;</a></h3>
+
+
+<pre>
+~# aptitude install pure-ftpd-common pure-ftpd-mysql
+</pre>
+
+	<p>添加用户和组：<br /><pre>
+groupadd -g 1000 ftpgroup
+useradd -u 1000 -s /bin/false -d /bin/null -c "pureftpd user" -g ftpgroup ftpuser
+</pre></p>
+
+
+	<p>登录mysql控制台，创建数据库：<br /><pre>
+create database pureftpd default character set utf8;
+</pre></p>
+
+
+	<p>创建数据库：<br /><pre>
+CREATE TABLE users (
+User varchar(16) NOT NULL default '',
+status enum('0','1') NOT NULL default '0',
+Password varchar(64) NOT NULL default '',
+Uid varchar(11) NOT NULL default '-1',
+Gid varchar(11) NOT NULL default '-1',
+Dir varchar(128) NOT NULL default '',
+ULBandwidth smallint(5) NOT NULL default '0',
+DLBandwidth smallint(5) NOT NULL default '0',
+comment tinytext NOT NULL,
+ipaccess varchar(15) NOT NULL default '*',
+QuotaSize smallint(5) NOT NULL default '0',
+QuotaFiles int(11) NOT NULL default 0,
+PRIMARY KEY (User),
+UNIQUE KEY User (User)
+)
+</pre></p>
+
+
+	<h3 id="配置pureftpd">配置pureftpd<a href="#配置pureftpd" class="wiki-anchor">&para;</a></h3>
+
+
+<pre>
+cp /etc/pure-ftpd/db/mysql.conf /etc/pure-ftpd/db/mysql.conf_orig
+cat /dev/null &gt; /etc/pure-ftpd/db/mysql.conf
+vi /etc/pure-ftpd/db/mysql.conf
+</pre>
+
+	<p>文件 /etc/pure-ftpd/db/mysql.conf 文件内容：<br /><pre>
+MYSQLSocket      /var/run/mysqld/mysqld.sock
+#MYSQLServer     localhost
+#MYSQLPort       3306
+MYSQLUser       root
+MYSQLPassword   pass
+MYSQLDatabase   pureftpd
+#MYSQLCrypt md5, cleartext, crypt() or password() - md5 is VERY RECOMMENDABLE uppon cleartext
+MYSQLCrypt      md5
+MYSQLGetPW      SELECT Password FROM users WHERE User="\L" AND status="1" AND (ipaccess = "*" OR ipaccess LIKE "\R")
+MYSQLGetUID     SELECT Uid FROM users WHERE User="\L" AND status="1" AND (ipaccess = "*" OR ipaccess LIKE "\R")
+MYSQLGetGID     SELECT Gid FROM users WHERE User="\L"AND status="1" AND (ipaccess = "*" OR ipaccess LIKE "\R")
+MYSQLGetDir     SELECT Dir FROM users WHERE User="\L"AND status="1" AND (ipaccess = "*" OR ipaccess LIKE "\R")
+MySQLGetBandwidthUL SELECT ULBandwidth FROM users WHERE User="\L"AND status="1" AND (ipaccess = "*" OR ipaccess LIKE "\R")
+MySQLGetBandwidthDL SELECT DLBandwidth FROM users WHERE User="\L"AND status="1" AND (ipaccess = "*" OR ipaccess LIKE "\R")
+MySQLGetQTASZ   SELECT QuotaSize FROM users WHERE User="\L"AND status="1" AND (ipaccess = "*" OR ipaccess LIKE "\R")
+MySQLGetQTAFS   SELECT QuotaFiles FROM users WHERE User="\L"AND status="1" AND (ipaccess = "*" OR ipaccess LIKE "\R")
+</pre></p>
+
+
+	<p>注意：替换MYSQLUser和 MYSQLPassword 的值为安装mysql时设置的值。</p>
+
+
+	<p>Then create the file /etc/pure-ftpd/conf/ChrootEveryone which simply contains the string yes:<br /><pre>
+echo "yes" &gt; /etc/pure-ftpd/conf/ChrootEveryone
+</pre></p>
+
+
+	<p>This will make PureFTPd chroot every virtual user in his home directory so he will not be able to browse directories and files outside his home directory.<br />Also create the file /etc/pure-ftpd/conf/CreateHomeDir which again simply contains the string yes:<br /><pre>
+echo "yes" &gt; /etc/pure-ftpd/conf/CreateHomeDir
+</pre></p>
+
+
+	<p>This will make PureFTPd create a user's home directory when the user logs in and the home directory does not exist yet.<br />Now we must configure PureFTPd as a standalone daemon. To do this, we open /etc/default/pure-ftpd-common and make sure that the value of the parameter STANDALONE_OR_INETD is standalone:</p>
+
+
+<pre>
+# Configuration for pure-ftpd
+# (this file is sourced by /bin/sh, edit accordingly)
+
+# STANDALONE_OR_INETD
+# valid values are "standalone" and "inetd".
+# Any change here overrides the setting in debconf.
+STANDALONE_OR_INETD=standalone
+
+# VIRTUALCHROOT:
+# whether to use binary with virtualchroot support
+# valid values are "true" or "false" 
+# Any change here overrides the setting in debconf.
+VIRTUALCHROOT=false
+
+# UPLOADSCRIPT: if this is set and the daemon is run in standalone mode,
+# pure-uploadscript will also be run to spawn the program given below
+# for handling uploads. see /usr/share/doc/pure-ftpd/README.gz or
+# pure-uploadscript(8)
+
+# example: UPLOADSCRIPT=/usr/local/sbin/uploadhandler.pl
+UPLOADSCRIPT=
+
+# if set, pure-uploadscript will spawn $UPLOADSCRIPT running as the
+# given uid and gid
+UPLOADUID=
+UPLOADGID=
+</pre>
+
+	<h3 id="创建Ftp用户">创建Ftp用户<a href="#创建Ftp用户" class="wiki-anchor">&para;</a></h3>
+
+
+	<p>Now we create the user exampleuser with the status 1 (which means his ftp account is active), the password secret (which will be stored encrypted using MySQL's MD5 function), the UID and GID 2001 (use the userid and groupid of the user/group you created at the end of step two!), the home directory /home/www.example.com, an upload and download bandwidth of 100 KB/sec. (kilobytes per second), and a quota of 50 MB:</p>
+
+
+<pre>
+INSERT INTO `users` (`User`, `status`, `Password`, `Uid`, `Gid`, `Dir`, `ULBandwidth`, `DLBandwidth`, `comment`, `ipaccess`, `QuotaSize`, `QuotaFiles`) VALUES ('user', '1', MD5('secret'), '1000', '1000', '/home/www.example.com', '100', '100', '', '*', '50', '0');
+</pre>
+
+	<p>注意：如果把ULBandwidth 和 DLBandwidth , QuotaSize, QuotaFiles 设置为 0 就表示不做任何限制。这里的Uid 和 Gid 一定要和文件目录的所有值一至。比如上面我们创建的用户和组。</p>
+
+
+<pre>
+INSERT INTO `users` (`User`, `status`, `Password`, `Uid`, `Gid`, `Dir`, `ULBandwidth`, `DLBandwidth`, `comment`, `ipaccess`, `QuotaSize`, `QuotaFiles`) VALUES ('hshfy', '1', MD5('2hshfy015'), '1000', '1000', '/data/hshfy-videos', '0', '0', 'the Shanghai court account', '*', '0', '0');
+</pre>
+
+	<p>获得数据库的权限</p>
+
+
+<pre>
+grant all privileges on pureftpd.* to ftpuser@localhost identified by ‘******’;
+</pre>
+
+	<h4>重启服务</h4>
+
+
+<pre>
+/etc/init.d/pure-ftpd-mysql restart
+</pre>
+
+	<h5>引用来源</h5>
+
+
+	<p>[[<a class="external" href="https://www.howtoforge.com/virtual-hosting-with-pureftpd-and-mysql-incl-quota-and-bandwidth-management-on-debian-squeeze">https://www.howtoforge.com/virtual-hosting-with-pureftpd-and-mysql-incl-quota-and-bandwidth-management-on-debian-squeeze</a>]]</p>
+<a>https://www.howtoforge.com/virtual-hosting-with-pure-ftpd-and-mysql-incl-quota-and-bandwidth-management-on-centos-6.5-p2</a>
+</body>
+</html>

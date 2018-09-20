@@ -1,0 +1,52 @@
+server http://www.jianshu.com/p/b5c4fbadbfae
+client  http://www.pandagao.com/2016/05/13/ubuntu-use-shadowsocks-and-pac/
+
+
+
+搭建SS服务器（ubuntu环境）：
+1,条件：一台能科学上网的vps。
+2,依次输入以下命令
+apt-get update
+apt-get install python-pip
+pip install shadowsocks
+3,创建配置文件
+vi /etc/shadowsocks.json
+
+4,按 “i” 进入编辑模式输入一下内容
+单用户模式：
+{
+    "server":"my_server_ip",
+    "server_port":8388,
+    "local_address": "127.0.0.1",
+    "local_port":1080,
+    "password":"mypassword",
+    "timeout":300,
+    "method":"aes-256-cfb",
+    "fast_open": false
+}
+
+
+多用户模式：
+{
+    "server":"my_server_ip",
+    "local_address": "127.0.0.1",
+    "local_port":1080,
+    "port_password": {
+        "8388": "pwd1",
+         "8389": "pwd2",
+        "8390": "pwd3",
+        "8391":"caimk"
+    },
+    "timeout":300,
+    "method":"aes-256-cfb",
+    "fast_open": false
+}
+
+
+5, 启动ss服务
+ssserver -c /etc/shadowsocks.json -d start
+6,查看ss服务是否启动
+ps aux|grep ssserver
+7,有如下字符出现就说明正常启动
+root      6655  0.0  1.4  41912  7404 ?        Ss   07:18   0:00 /usr/bin/python /usr/local/bin/ssserver -c /etc/shadowsocks.conf -d start
+root      6657  0.0  0.1  11228   884 pts/0    S+   07:19   0:00 grep --color=auto ss

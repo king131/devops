@@ -1,0 +1,98 @@
+1,添加中文支持
+aptitude install locales
+
+dpkg-reconfigure locales
+
+#配置编码进入选择：(空格键是选择，不是ENTER，选择完了后再ENTER）
+
+en_US.UTF8
+
+zh_CN GB2312
+
+zh_CN GBK GBK
+
+zh_CN UTF-8 UTF-8
+
+#vi /etc/default/locale
+
+LANG=en_US.UTF-8
+
+如果还有方块需要装字体：
+
+apt-get install ttf-arphic-uming
+
+apt-get install ttf-wqy-zenhei
+
+（以上命令需要ROOT权限，装字体需联网，同时需要配置好软件源。）
+
+2，更改时区到上海
+tzselect
+然后会看到消息，提示我们把TZ='Asia/Shanghai'加入到系统环境变量内。我们进行下一步操作。
+
+接下来我们执行命令"nano /etc/profile"修改配置文件。
+debian系列系统查看时区以及更改时区方法
+nano /etc/profile
+
+在文件内添加一行export TZ='Asia/Shanghai'。
+
+修改export PATH那行，添加$TZ到PATH内，然后进行保存。
+debian系列系统查看时区以及更改时区方法
+export PATH=$JAVA_HOME/bin:$TZ:$PATH
+
+
+然后执行命令"source /etc/profile"更新系统变量。
+debian系列系统查看时区以及更改时区方法
+
+
+然后我们再次执行命令“date -R”验证时区是否更改，可以看到此时已经更改成了东八区了。然后我们根据网络时间同步，时间就正确了。
+debian系列系统查看时区以及更改时区方法
+
+
+3,在root的跟目录下改bashrc （实现命令上下翻动）
+
+vi ～/.basher 
+状态如下：
+
+
+# ~/.bashrc: executed by bash(1) for non-login shells.
+
+# Note: PS1 and umask are already set in /etc/profile. You should not
+# need this unless you want different defaults for root.
+# PS1='${debian_chroot:+($debian_chroot)}\h:\w\$ '
+# umask 022
+
+# You may uncomment the following lines if you want `ls' to be colorized:
+export LS_OPTIONS='--color=auto'
+eval "`dircolors`"
+alias ls='ls $LS_OPTIONS'
+alias ll='ls $LS_OPTIONS -l'
+alias l='ls $LS_OPTIONS -lA'
+#
+# Some more alias to avoid making mistakes:
+alias rm='rm -i'
+alias cp='cp -i'
+alias mv='mv -i'
+
+bind '"\x1b\x5b\x41":history-search-backward'
+bind '"\x1b\x5b\x42":history-search-forward'
+
+
+4,添加vim  配置/etc/vim/vimrc.local
+
+set fencs=utf-8,usc-bom,euc-jp,gb18030,gbk,gb2312,cp936
+syntax on
+set paste
+
+
+5,添加通用工具如 
+apt-get install -y htop iftop iotop sysstat screen
+
+6 改limits.conf  /etc/security/limits.conf
+
+添加
+
+* hard nofile 8192
+* soft nofile 8192
+root hard nofile 8192
+root soft nofile 8192
+

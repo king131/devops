@@ -1,0 +1,49 @@
+1.Debian 7 安装 Python3.4
+
+	http://www.cnblogs.com/ibgo/p/3905779.html
+
+2. RSync实现文件备份同步
+
+	http://www.cnblogs.com/itech/archive/2009/08/10/1542945.html
+
+3.Delete everything in a MongoDB database
+	
+	http://stackoverflow.com/questions/3366397/delete-everything-in-a-mongodb-database
+
+	mongo DATABASE_NAME --eval "db.dropDatabase();"
+
+
+	
+
+	To delete all DBs use:
+
+	for i in $(mongo --quiet --host $HOSTNAME --eval "db.getMongo().getDBNames()" | tr "," " ");
+
+	do mongo $i --host $HOSTNAME --eval "db.dropDatabase()";
+
+	done 
+
+
+4. zabbix 的安装和配置
+
+	官方文档：https://www.zabbix.com/documentation/3.0/manual/installation/install_from_packages
+
+5. How To Install Apache Tomcat 8 on Ubuntu 16.04
+ 
+	https://www.digitalocean.com/community/tutorials/how-to-install-apache-tomcat-8-on-ubuntu-16-04
+
+6. mongodb systemctl 启动脚本
+
+	https://gist.github.com/jwilm/5842956
+	https://github.com/mongodb/mongo/blob/master/debian/init.d
+
+7. ubuntu上怎么设置默认python命令是执行python3而不是python2
+
+	https://segmentfault.com/q/1010000003713912
+
+8. Install MongoDB Community Edition on Debian
+
+	https://www.digitalocean.com/community/tutorials/how-to-install-mongodb-on-ubuntu-16-04
+
+
+

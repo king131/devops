@@ -1,0 +1,13 @@
+----------------------------------------------------------------------------------------------------------------------------------------------------
+debian 安装新源出现no pablic key的解决办法：
+
+gpg --keyserver keyserver.ubuntu.com --recv XXXXXXXX(报错key的后八位)
+
+gpg --keyserver keyring.debian.org --recv-key XXXXXXXX
+
+gap --export --armor XXXXXXXX | sudo apt-key add -
+
+
+最后执行 apt-get upadte
+
+

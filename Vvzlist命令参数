@@ -1,0 +1,21 @@
+o:~# vzlist --help
+Usage:	vzlist [-a | -S] [-n] [-H] [-o field[,field...] | -1] [-s [-]field]
+	       [-h pattern] [-N pattern] [-d pattern] [CTID [CTID ...]]
+	vzlist -L | --list
+
+Options:
+	-a, --all		list all containers
+	-S, --stopped		list stopped containers
+	-n, --name		display containers' names
+	-H, --no-header		suppress columns header
+	-t, --no-trim		do not trim long values
+	-j, --json		output in JSON format
+	-o, --output		output only specified fields
+	-1			synonym for -H -octid
+	-s, --sort		sort by the specified field
+				('-field' to reverse sort order)
+	-h, --hostname		filter CTs by hostname pattern
+	-N, --name_filter	filter CTs by name pattern
+	-d, --description	filter CTs by description pattern
+	-L, --list		get possible field names
+
