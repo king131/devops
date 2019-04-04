@@ -1,0 +1,10 @@
+while getopts "md" ARG; do
+  case ${ARG} in
+    m)
+      USE_MAVEN='yes'
+      ;;
+    d)
+      DO_DOCKER='yes'
+      ;;
+  esac
+done
